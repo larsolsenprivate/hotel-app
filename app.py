@@ -12,7 +12,7 @@ KODEORD = "Frankrig2026"
 
 # ==============================================================================
 # ⚠️ INDSÆT DIT GOOGLE SHEET LINK HERUNDER:
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/DIT_UNIKKE_ID_HER/edit?usp=sharing"
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?gid=0#gid=0"
 # ==============================================================================
 
 if "logget_ind" not in st.session_state:
@@ -20,7 +20,7 @@ if "logget_ind" not in st.session_state:
 
 if not st.session_state.logget_ind:
     st.title("🔒 Lukket område")
-    st.write("Dette er en lukket app til herreturen/venneturen 2026. Indtast adgangskode for at pokračovať:")
+    st.write("Dette er en lukket app til herreturen/venneturen 2026. Indtast adgangskode for at fortsætte:")
     
     indtastet_kode = st.text_input("Adgangskode:", type="password")
     
@@ -67,7 +67,6 @@ st.write("---")
 st.subheader("Tilføj nyt sted")
 
 with st.form("nyt_hotel_form", clear_on_submit=True):
-    # NYT: Her er dropdown-menuen med jeres navne
     navne_liste = ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"]
     hvem_er_du = st.selectbox("Hvem finder det?", options=navne_liste)
     
@@ -101,4 +100,17 @@ with st.form("nyt_hotel_form", clear_on_submit=True):
 
 st.write("---")
 st.subheader(f"Muligheder i {aktuelt_omraade}")
-filtreret_liste =
+
+# Her er linje 104 rettet fuldstændigt:
+filtreret_liste = [h for h in hoteller_liste if str(h.get("Område")) == aktuelt_omraade]
+
+if not filtreret_liste:
+    st.info("Ingen hoteller fundet i dette område endnu.")
+else:
+    tabel_data = []
+    for h in filtreret_liste:
+        try:
+            pris_nat = float(h.get("Pris pr. nat", 0))
+            rating_int = int(float(h.get("Rating", 5)))
+        except:
+            pris_nat =
