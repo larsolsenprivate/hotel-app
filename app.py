@@ -104,18 +104,7 @@ else:
     for h in filtreret_liste:
         p_pers = int((h["Pris pr. nat"] / 2) * naetter)
         t_grup = int(h["Pris pr. nat"] * 4 * naetter)
-        maps_link = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(f'{h[\'Navn\']} {h[\'Lokation\']} France')}"
         
-        with st.expander(f"{h['Navn']} - {p_pers} kr./pers."):
-            st.write(f"Fundet af: {h['Navn_Bruger']} | By: {h['Lokation']}")
-            c_a, c_b = st.columns(2)
-            c_a.write(f"Pris pr. nat (1 værelse): {h['Pris pr. nat']} kr.")
-            c_a.write(f"Pris pr. person: {p_pers} kr.")
-            c_b.write(f"Totalpris gruppe (4 værelser): {t_grup} kr.")
-            if p_pers <= 1000:
-                c_b.success("Inden for budget!")
-            else:
-                c_b.error("Over budget!")
-            
-            if h["Kommentar"]:
-                st.info(f"Kommentar
+        # Her er den fejlsikrede linje uden de slemme skråstreger:
+        soege_streng = h["Navn"] + " " + h["Lokation"] + " France"
+        maps_link = f
