@@ -93,7 +93,6 @@ else:
             "Rating": "X" * int(h["Rating"]),
             "Navn": h["Navn"],
             "By": h["Lokation"],
-            "Pris/Nat Værelse": f"{h['Pris pr. nat']} kr.",
             "Pris/Pers Total": f"{p_pers} kr.",
             "Total Gruppe (8 pers)": f"{t_grup} kr.",
             "Budget": "OK" if p_pers <= 1000 else "OVER",
@@ -105,6 +104,30 @@ else:
         p_pers = int((h["Pris pr. nat"] / 2) * naetter)
         t_grup = int(h["Pris pr. nat"] * 4 * naetter)
         
-        # Her er den fejlsikrede linje uden de slemme skråstreger:
         soege_streng = h["Navn"] + " " + h["Lokation"] + " France"
-        maps_link = f
+        maps_link = f"http://maps.google.com/?q={urllib.parse.quote(soege_streng)}"
+        
+        with st.expander(f"{h['Navn']} - {p_pers} kr./pers."):
+            st.write(f"Fundet af: {h['Navn_Bruger']} | By: {h['Lokation']}")
+            c_a, c_b = st.columns(2)
+            c_a.write(f"📊 Pris pr. person: {p_pers} kr.")
+            c_b.write(f"👥 Totalpris gruppe (8 pers): {t_grup} kr.")
+            if p_pers <= 1000:
+                c_b.success("Inden for budget!")
+            else:
+                c_b.error("Over budget!")
+            
+            if h["Kommentar"]:
+                st.info(f"Kommentar: {h['Kommentar']}")
+            
+            l1, l2 = st.columns(2)
+            if h["Link"] != "Intet link":
+                l1.markdown(f"[🔗 Åbn Booking/Airbnb]({h['Link']})")
+            l2.markdown(f"[📍 Vis på Google Maps]({maps_link})")
+            
+            btn1, btn2 = st.columns(2)
+            if btn1.button("📝 Rediger", key=f"ed_{h['id']}"):
+                st.session_state.edit_id = h["id"]
+                st.rerun()
+            if btn2.button("🗑️ Slet", key=f"del_{h['id']}"):
+                st.session
