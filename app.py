@@ -11,8 +11,8 @@ KODEORD = "Frankrig2026"
 # ==============================================================================
 
 # ==============================================================================
-# ⚠️ INDSÆT DIT GOOGLE SHEET LINK HERUNDER:
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?gid=0#gid=0"
+# 🔗 JERS RIGTIGE GOOGLE SHEET LINK (SAT IND AUTOMATISK):
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?usp=sharing"
 # ==============================================================================
 
 if "logget_ind" not in st.session_state:
@@ -31,7 +31,7 @@ if not st.session_state.logget_ind:
     st.stop()
 
 try:
-    sheet_id = re.search(r"/d/([^/]+)", GOOGLE_SHEET_URL).group(1)
+    sheet_id = "1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00"
     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 except:
     st.error("Google Sheet URL'en er ikke gyldig.")
@@ -71,10 +71,7 @@ with st.form("nyt_hotel_form", clear_on_submit=True):
     
     navn = st.text_input("Hotel / Airbnb Navn:", value=automatisk_navn)
     lokation = st.text_input("By / Lokation:", value="Ribeauvillé" if naetter == 2 else "Chamonix")
-    
-    # OPDATERET: Nu er standardværdien sat til 12.000 kr.
     total_regning = st.number_input(f"Samlet pris (For alle 4 værelser i alle {naetter} nætter i alt):", min_value=0, value=12000)
-    
     rating_valg = st.slider("Din rating:", 1, 5, 5)
     kommentar = st.text_area("Kommentar:")
     
@@ -108,6 +105,7 @@ else:
     tabel_data = []
     for h in filtreret:
         try:
+            # Vi bruger .get() med en backup-værdi for at undgå fejl hvis arket er tomt
             pris_n = float(h.get("Pris pr. nat", 0))
             rat_i = int(float(h.get("Rating", 5)))
         except:
