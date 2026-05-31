@@ -16,7 +16,7 @@ try:
     sheet_id = re.search(r"/d/([^/]+)", GOOGLE_SHEET_URL).group(1)
     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 except:
-    st.error("Google Sheet URL'en er ikke gyldig. Tjek formatet på linje 11.")
+    st.error("Google Sheet URL'en er ikke gyldig. Tjek formatet på linje 12.")
     st.stop()
 
 # Funktion til at hente data fra Google Sheets
@@ -85,36 +85,4 @@ with st.form("nyt_hotel_form", clear_on_submit=True):
                 "Pris pr. nat": pris_pr_nat,
                 "Rating": rating_valg,
                 "Navn_Bruger": hvem_er_du,
-                "Kommentar": kommentar,
-                "Link": booking_link if booking_link else "Intet link"
-            }
-            st.session_state.hoteller.append(nyt_hotel)
-            st.success(f"🎉 {navn} er tilføjet!")
-            st.rerun()
-        else:
-            st.error("Udfyld venligst både dit navn og hotellets navn!")
-
-# --- DATA-FORBEREDELSE TIL TABEL OG LISTE ---
-st.write("---")
-st.subheader(f"Muligheder i {aktuelt_omraade}")
-
-filtreret_liste = [h for h in st.session_state.hoteller if h["Område"] == aktuelt_omraade]
-filtreret_liste = sorted(filtreret_liste, key=lambda x: x["Rating"], reverse=True)
-
-if not filtreret_liste:
-    st.info("Ingen hoteller gemt i dette område endnu.")
-else:
-    # 1. GENERER COMPACT SAMMENLIGNINGSTABEL
-    tabel_data = []
-    for h in filtreret_liste:
-        pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
-        total_gruppe_pris = int(h["Pris pr. nat"] * 4 * naetter) # Ganger tilbage med 4 værelser
-        budget_status = "🟩 OK" if pris_pr_person_total <= 1000 else "🟥 OVER"
-        
-        tabel_data.append({
-            "Rating": "⭐" * int(h["Rating"]),
-            "Navn": h["Navn"],
-            "By": h["Lokation"],
-            "Pris/Nat Værelse": f"{h['Pris pr. nat']} kr.",
-            "Pris/Pers Total": f"{pris_pr_person_total} kr.",
-            "Total Gruppe (8 pers)": f
+                "Kommentar": kom
