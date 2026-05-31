@@ -8,7 +8,7 @@ st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", l
 
 # ==============================================================================
 # ⚠️ INDSÆT DIT GOOGLE SHEET LINK HERUNDER:
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?gid=0#gid=0"
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/DIT_UNIKKE_ID_HER/edit?usp=sharing"
 # ==============================================================================
 
 # Konverter Google Sheet linket til et direkte CSV-download-link
@@ -40,7 +40,7 @@ if "hoteller" not in st.session_state:
         ]
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
-st.subheader("Krav: 4 værelser | Max 1.000 kr. pr. person totalt")
+st.subheader("Krav: 2 værelser (4 personer) | Max 1.000 kr. pr. person totalt")
 
 # Vælg Område
 fane = st.radio("Vælg område:", ["🍇 Alsace (2 nætter)", "🏔️ Alperne (6 nætter)"])
@@ -108,7 +108,7 @@ else:
     tabel_data = []
     for h in filtreret_liste:
         pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
-        total_gruppe_pris = int(h["Pris pr. nat"] * 4 * naetter)
+        total_gruppe_pris = int(h["Pris pr. nat"] * 2 * naetter) # Ganger nu med 2 værelser i stedet for 4
         budget_status = "🟩 OK" if pris_pr_person_total <= 1000 else "🟥 OVER"
         
         tabel_data.append({
@@ -117,7 +117,7 @@ else:
             "By": h["Lokation"],
             "Pris/Nat Værelse": f"{h['Pris pr. nat']} kr.",
             "Pris/Pers Total": f"{pris_pr_person_total} kr.",
-            "Total Gruppe": f"{total_gruppe_pris} kr.",
+            "Total Gruppe (4 pers)": f"{total_gruppe_pris} kr.",
             "Budget": budget_status,
             "Fundet af": h["Navn_Bruger"]
         })
@@ -131,74 +131,9 @@ else:
     
     for h in filtreret_liste:
         pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
-        total_gruppe_pris = int(h["Pris pr. nat"] * 4 * naetter)
+        total_gruppe_pris = int(h["Pris pr. nat"] * 2 * naetter) # Ganger nu med 2 værelser i stedet for 4
         stjerner = "⭐" * int(h["Rating"])
         budget_ikon = "🟩" if pris_pr_person_total <= 1000 else "🟥"
         
         # Opret Google Maps søgelink automatisk baseret på navn og lokation
         soge_tekst = f"{h['Navn']} {h['Lokation']} France"
-        maps_link = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(soge_tekst)}"
-        
-        # Sætter hotellet ind i en lukket boks (st.expander) som standard
-        with st.expander(f"{stjerner} {h['Navn']} — {budget_ikon} {pris_pr_person_total} kr./pers."):
-            st.caption(f"Tilføjet af: **{h['Navn_Bruger']}** | Lokation: **{h['Lokation']}**")
-            
-            # Pris-detaljer inde i boksen
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.write(f"🛏️ **Pris pr. nat (værelse):** {h['Pris pr. nat']} kr.")
-                st.write(f"📊 **Pris pr. person ({naetter} nætter):** {pris_pr_person_total} kr.")
-            with col_b:
-                st.write(f"👥 **Totalpris for gruppen (4 værelser):** {total_gruppe_pris} kr.")
-                if pris_pr_person_total <= 1000:
-                    st.success("Inden for budget!")
-                else:
-                    st.error(f"Over budget med {pris_pr_person_total - 1000} kr.")
-            
-            if h["Kommentar"]:
-                st.info(f"💬 **Kommentar:** {h['Kommentar']}")
-                
-            # Links i bunden af hotellet (Booking/Airbnb + Google Maps)
-            link_col1, link_col2 = st.columns(2)
-            with link_col1:
-                if h["Link"] != "Intet link":
-                    st.markdown(f"[🔗 Åbn hos Booking/Airbnb]({h['Link']})")
-            with link_col2:
-                st.markdown(f"[📍 Vis på Google Maps]({maps_link})")
-            
-            st.write("") # Mellemrum
-            
-            # Rediger og Slet knapper indeni den foldede boks
-            c1, c2 = st.columns([1, 4])
-            with c1:
-                if st.button("📝 Rediger", key=f"edit_btn_{h['id']}"):
-                    st.session_state.edit_id = h["id"]
-                    st.rerun()
-            with c2:
-                if st.button("🗑️ Slet", key=f"del_btn_{h['id']}"):
-                    st.session_state.hoteller = [x for x in st.session_state.hoteller if x["id"] != h["id"]]
-                    st.rerun()
-            
-            # Formular til redigering (hvis man har klikket rediger)
-            if st.session_state.edit_id == h["id"]:
-                st.markdown("---")
-                st.markdown("#### ✏️ Rediger oplysninger")
-                with st.form(f"edit_form_{h['id']}"):
-                    ny_rating = st.slider("Ændr rating:", 1, 5, value=int(h["Rating"]))
-                    ny_kommentar = st.text_area("Ret kommentar:", value=h["Kommentar"])
-                    ny_pris = st.number_input("Ret pris pr. nat:", min_value=0, value=int(h["Pris pr. nat"]))
-                    ny_by = st.text_input("Ret lokation:", value=h["Lokation"])
-                    
-                    if st.form_submit_button("Gem ændringer"):
-                        for hotel in st.session_state.hoteller:
-                            if hotel["id"] == h["id"]:
-                                hotel["Rating"] = ny_rating
-                                hotel["Kommentar"] = ny_kommentar
-                                hotel["Pris pr. nat"] = ny_pris
-                                hotel["Lokation"] = ny_by
-                        st.session_state.edit_id = None
-                        st.rerun()
-
-# --- BUND-SEKTION: LINK TIL DATABASE ---
-st.write("---")
-st.markdown(f"[📊 Åbn det fælles Google Sheet (Database)]({GOOGLE_SHEET_URL})")
