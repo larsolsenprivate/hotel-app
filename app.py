@@ -7,23 +7,20 @@ st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", l
 
 # ==============================================================================
 # 🔒 SIKKERHED: VÆLG DIN ADGANGSKODE HER:
-KODEORD = "Frankrig2026"  # <--- Skift dette til det, jeres venner skal taste ind!
+KODEORD = "Frankrig2026"
 # ==============================================================================
 
 # ==============================================================================
 # ⚠️ INDSÆT DIT GOOGLE SHEET LINK HERUNDER:
-# (Sørg for, at arket i Google Sheets er sat til: "Alle med linket kan redigere")
 GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/DIT_UNIKKE_ID_HER/edit?usp=sharing"
 # ==============================================================================
 
-# Tjek om brugeren er logget ind i denne session
 if "logget_ind" not in st.session_state:
     st.session_state.logget_ind = False
 
-# Hvis brugeren IKKE er logget ind, vis login-skærmen
 if not st.session_state.logget_ind:
     st.title("🔒 Lukket område")
-    st.write("Dette er en lukket app til herreturen/venneturen 2026. Indtast adgangskode for at fortsætte:")
+    st.write("Dette er en lukket app til herreturen/venneturen 2026. Indtast adgangskode for at pokračovať:")
     
     indtastet_kode = st.text_input("Adgangskode:", type="password")
     
@@ -35,16 +32,15 @@ if not st.session_state.logget_ind:
         else:
             st.error("Forkert adgangskode. Prøv igen!")
             
-    st.stop() # Stopper koden her, så resten af appen er HELT skjult indtil man logger ind
+    st.stop()
 
 
 # ==============================================================================
-# HERUNDER STARTER SELVE APPEN (KØRER KUN HVIS MAN ER LOGGET IND)
+# HERUNDER STARTER SELVE APPEN
 # ==============================================================================
 
 try:
     sheet_id = re.search(r"/d/([^/]+)", GOOGLE_SHEET_URL).group(1)
-    db_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq"
     csv_url = f"https://docs.google.com/spreadsheets/d/{sheet_id}/export?format=csv"
 except:
     st.error("Google Sheet URL'en er ikke gyldig.")
@@ -71,7 +67,10 @@ st.write("---")
 st.subheader("Tilføj nyt sted")
 
 with st.form("nyt_hotel_form", clear_on_submit=True):
-    hvem_er_du = st.text_input("Dit navn:", placeholder="Christian")
+    # NYT: Her er dropdown-menuen med jeres navne
+    navne_liste = ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"]
+    hvem_er_du = st.selectbox("Hvem finder det?", options=navne_liste)
+    
     navn = st.text_input("Hotel / Airbnb Navn:")
     lokation = st.text_input("By / Lokation:", value="Ribeauvillé" if naetter == 2 else "Chamonix")
     total_regning = st.number_input(f"Samlet pris (For 4 værelser i alle {naetter} nætter i alt):", min_value=0, value=8000)
@@ -102,33 +101,4 @@ with st.form("nyt_hotel_form", clear_on_submit=True):
 
 st.write("---")
 st.subheader(f"Muligheder i {aktuelt_omraade}")
-filtreret_liste = [h for h in hoteller_liste if str(h.get("Område")) == aktuelt_omraade]
-
-if not filtreret_liste:
-    st.info("Ingen hoteller fundet i dette område endnu.")
-else:
-    tabel_data = []
-    for h in filtreret_liste:
-        try:
-            pris_nat = float(h.get("Pris pr. nat", 0))
-            rating_int = int(float(h.get("Rating", 5)))
-        except:
-            pris_nat = 0
-            rating_int = 5
-            
-        p_pers = int((pris_nat / 2) * naetter)
-        t_grup = int(pris_nat * 4 * naetter)
-        
-        tabel_data.append({
-            "Rating": "X" * rating_int,
-            "Navn": h.get("Navn"),
-            "By": h.get("Lokation"),
-            "Pris/Pers Total": f"{p_pers} kr.",
-            "Total Gruppe (8 pers)": f"{t_grup} kr.",
-            "Budget": "OK" if p_pers <= 1000 else "OVER",
-            "Fundet af": h.get("Navn_Bruger")
-        })
-    st.dataframe(pd.DataFrame(tabel_data), use_container_width=True, hide_index=True)
-
-st.write("---")
-st.markdown(f"[📊 Åbn det fælles Google Sheet]({GOOGLE_SHEET_URL})")
+filtreret_liste =
