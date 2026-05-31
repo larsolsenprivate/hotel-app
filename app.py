@@ -153,4 +153,4 @@ else:
             if h["Kommentar"]:
                 st.info(f"💬 **Kommentar:** {h['Kommentar']}")
                 
-            if h["Link"] != "Intet
+            if h["Link"] != "Intet"
