@@ -12,7 +12,7 @@ KODEORD = "Frankrig2026"
 
 # ==============================================================================
 # ⚠️ INDSÆT DIT GOOGLE SHEET LINK HERUNDER:
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/DIT_UNIKKE_ID_HER/edit?usp=sharing"
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?gid=0#gid=0"
 # ==============================================================================
 
 if "logget_ind" not in st.session_state:
@@ -56,26 +56,39 @@ aktuelt_omraade = "Alsace" if naetter == 2 else "Alperne"
 st.write("---")
 st.subheader("Tilføj nyt sted")
 
+# Først tager vi imod linket for at kunne trække navnet ud INDEN formularen
+booking_link = st.text_input("Indsæt link (Booking.com / Airbnb) HER FØRST for at hente navn automatisk:")
+
+automatisk_navn = ""
+if booking_link and "booking.com" in booking_link:
+    match = re.search(r'/hotel/[a-z]{2}/([^.]+)', booking_link)
+    if match:
+        # Laver "hotel-grand-paris" om til "Hotel Grand Paris"
+        automatisk_navn = match.group(1).replace("-", " ").title()
+        st.success(f"🤖 Fandt automatisk hotelnavn: {automatisk_navn}")
+
 with st.form("nyt_hotel_form", clear_on_submit=True):
     navne_liste = ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"]
     hvem_er_du = st.selectbox("Hvem finder det?", options=navne_liste)
-    navn = st.text_input("Hotel / Airbnb Navn:")
+    
+    # Her bruger vi det automatiske navn som standardværdi, hvis det blev fundet
+    navn = st.text_input("Hotel / Airbnb Navn:", value=automatisk_navn)
     lokation = st.text_input("By / Lokation:", value="Ribeauvillé" if naetter == 2 else "Chamonix")
     total_regning = st.number_input(f"Samlet pris (For alle 4 værelser i alle {naetter} nætter i alt):", min_value=0, value=8000)
     rating_valg = st.slider("Din rating:", 1, 5, 5)
     kommentar = st.text_area("Kommentar:")
-    booking_link = st.text_input("Indsæt link:", value="Intet link")
     
     if st.form_submit_button("Gem overnatningssted og send til Google Sheet"):
         if navn and hvem_er_du:
             beregnet_pris_pr_nat = int(total_regning / 4 / naetter) if (4 * naetter) > 0 else 0
+            gemt_link = booking_link if booking_link else "Intet link"
             try:
                 conn = connect(":memory:")
                 cursor = conn.cursor()
                 insert_query = f"""
                 INSERT INTO "{GOOGLE_SHEET_URL}" 
                 (id, Område, Navn, Lokation, "Pris pr. nat", Rating, Navn_Bruger, Kommentar, Link) 
-                VALUES ('{len(hoteller_liste)+1}', '{aktuelt_omraade}', '{navn}', '{lokation}', {beregnet_pris_pr_nat}, {rating_valg}, '{hvem_er_du}', '{kommentar}', '{booking_link}')
+                VALUES ('{len(hoteller_liste)+1}', '{aktuelt_omraade}', '{navn}', '{lokation}', {beregnet_pris_pr_nat}, {rating_valg}, '{hvem_er_du}', '{kommentar}', '{gemt_link}')
                 """
                 cursor.execute(insert_query)
                 st.success(f"🎉 Gemt!")
