@@ -12,7 +12,7 @@ KODEORD = "Frankrig2026"
 
 # ==============================================================================
 # ⚠️ INDSÆT DIT GOOGLE SHEET LINK HERUNDER:
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/DIT_UNIKKE_ID_HER/edit?usp=sharing"
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?gid=0#gid=0"
 # ==============================================================================
 
 if "logget_ind" not in st.session_state:
