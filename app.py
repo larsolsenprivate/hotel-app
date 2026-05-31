@@ -40,7 +40,7 @@ if "hoteller" not in st.session_state:
         ]
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
-st.subheader("Krav: 2 værelser (4 personer) | Max 1.000 kr. pr. person totalt")
+st.subheader("Krav: 4 værelser (8 personer) | Max 1.000 kr. pr. person totalt")
 
 # Vælg Område
 fane = st.radio("Vælg område:", ["🍇 Alsace (2 nætter)", "🏔️ Alperne (6 nætter)"])
@@ -108,7 +108,7 @@ else:
     tabel_data = []
     for h in filtreret_liste:
         pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
-        total_gruppe_pris = int(h["Pris pr. nat"] * 2 * naetter) # Ganger nu med 2 værelser i stedet for 4
+        total_gruppe_pris = int(h["Pris pr. nat"] * 4 * naetter) # Ganger tilbage med 4 værelser
         budget_status = "🟩 OK" if pris_pr_person_total <= 1000 else "🟥 OVER"
         
         tabel_data.append({
@@ -117,23 +117,4 @@ else:
             "By": h["Lokation"],
             "Pris/Nat Værelse": f"{h['Pris pr. nat']} kr.",
             "Pris/Pers Total": f"{pris_pr_person_total} kr.",
-            "Total Gruppe (4 pers)": f"{total_gruppe_pris} kr.",
-            "Budget": budget_status,
-            "Fundet af": h["Navn_Bruger"]
-        })
-    
-    # Vis tabellen i Streamlit
-    df_visning = pd.DataFrame(tabel_data)
-    st.dataframe(df_visning, use_container_width=True, hide_index=True)
-
-    # 2. DETALJERET LISTE MED FOLD UD/IND (EXPANDERS)
-    st.write("### 🔍 Klik på et hotel for detaljer og redigering")
-    
-    for h in filtreret_liste:
-        pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
-        total_gruppe_pris = int(h["Pris pr. nat"] * 2 * naetter) # Ganger nu med 2 værelser i stedet for 4
-        stjerner = "⭐" * int(h["Rating"])
-        budget_ikon = "🟩" if pris_pr_person_total <= 1000 else "🟥"
-        
-        # Opret Google Maps søgelink automatisk baseret på navn og lokation
-        soge_tekst = f"{h['Navn']} {h['Lokation']} France"
+            "Total Gruppe (8 pers)": f
