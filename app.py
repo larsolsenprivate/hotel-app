@@ -7,7 +7,7 @@ st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", l
 
 # DETTE ER REGLEN FOR DIN FORBINDELSE
 # (Husk at jeres Google Sheet skal være åbent for redigering for alle med linket!)
-GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/DIT_UNIKKE_ID_HER/edit?usp=sharing"
+GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit?gid=0#gid=0"
 
 # Opret forbindelse til Google Sheets via Streamlit
 try:
