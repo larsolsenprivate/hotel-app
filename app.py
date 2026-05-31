@@ -161,4 +161,34 @@ else:
             
             st.write("") 
             
-            c1, c2 = st.columns(
+            # Forenklet linje 164 her for at undgå fejl under kopiering
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("📝 Rediger", key=f"edit_btn_{h['id']}"):
+                    st.session_state.edit_id = h["id"]
+                    st.rerun()
+            with c2:
+                if st.button("🗑️ Slet", key=f"del_btn_{h['id']}"):
+                    st.session_state.hoteller = [x for x in st.session_state.hoteller if x["id"] != h["id"]]
+                    st.rerun()
+            
+            if st.session_state.edit_id == h["id"]:
+                st.markdown("---")
+                st.markdown("#### Rediger oplysninger")
+                with st.form(f"edit_form_{h['id']}"):
+                    ny_rating = st.slider("Ændr rating:", 1, 5, value=int(h["Rating"]))
+                    ny_kommentar = st.text_area("Ret kommentar:", value=h["Kommentar"])
+                    
+                    aktuel_total = int(h["Pris pr. nat"] * 4 * naetter)
+                    ny_total = st.number_input("Ret totalpris for hele gruppen:", min_value=0, value=aktuel_total)
+                    ny_by = st.text_input("Ret lokation:", value=h["Lokation"])
+                    
+                    if st.form_submit_button("Gem ændringer"):
+                        for hotel in st.session_state.hoteller:
+                            if hotel["id"] == h["id"]:
+                                hotel["Rating"] = ny_rating
+                                hotel["Kommentar"] = ny_kommentar
+                                hotel["Pris pr. nat"] = int(ny_total / 4 / naetter) if (4 * naetter) > 0 else 0
+                                hotel["Lokation"] = ny_by
+                        st.session_state.edit_id = None
+                        st.
