@@ -31,13 +31,6 @@ def hent_data():
 # Hent data ind i appen
 if "hoteller" not in st.session_state:
     st.session_state.hoteller = hent_data()
-    if not st.session_state.hoteller:
-        # Standard-forslag hvis arket er tomt
-        st.session_state.hoteller = [
-            {"id": "1", "Område": "Alsace", "Navn": "Hôtel De La Tour", "Lokation": "Ribeauvillé Center", "Pris pr. nat": 900, "Rating": 5, "Navn_Bruger": "Mads", "Kommentar": "Vintårn i den gamle bydel! Super autentisk.", "Link": "https://www.booking.com"},
-            {"id": "2", "Område": "Alsace", "Navn": "Gîte l'Ancienne Poterie", "Lokation": "Ribeauvillé", "Pris pr. nat": 1100, "Rating": 4, "Navn_Bruger": "Mette", "Kommentar": "Rigtig lækker placering.", "Link": "https://www.airbnb.dk"},
-            {"id": "3", "Område": "Alperne", "Navn": "Chalet Les Praz", "Lokation": "Chamonix", "Pris pr. nat": 320, "Rating": 4, "Navn_Bruger": "Sofie", "Kommentar": "Superbilligt alternativ tæt på liften.", "Link": "https://www.airbnb.dk"}
-        ]
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
 st.subheader("Krav: 4 værelser (8 personer) | Max 1.000 kr. pr. person totalt")
@@ -85,4 +78,95 @@ with st.form("nyt_hotel_form", clear_on_submit=True):
                 "Pris pr. nat": pris_pr_nat,
                 "Rating": rating_valg,
                 "Navn_Bruger": hvem_er_du,
-                "Kommentar": kom
+                "Kommentar": kommentar,
+                "Link": booking_link if booking_link else "Intet link"
+            }
+            st.session_state.hoteller.append(nyt_hotel)
+            st.success(f"🎉 {navn} er tilføjet!")
+            st.rerun()
+        else:
+            st.error("Udfyld venligst både dit navn og hotellets navn!")
+
+# --- DATA-FORBEREDELSE TIL TABEL OG LISTE ---
+st.write("---")
+st.subheader(f"Muligheder i {aktuelt_omraade}")
+
+filtreret_liste = [h for h in st.session_state.hoteller if h["Område"] == aktuelt_omraade]
+filtreret_liste = sorted(filtreret_liste, key=lambda x: x["Rating"], reverse=True)
+
+if not filtreret_liste:
+    st.info("Ingen hoteller gemt i dette område endnu. Begynd at taste dem ind ovenfor!")
+else:
+    # 1. GENERER COMPACT SAMMENLIGNINGSTABEL
+    tabel_data = []
+    for h in filtreret_liste:
+        pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
+        total_gruppe_pris = int(h["Pris pr. nat"] * 4 * naetter)
+        budget_status = "🟩 OK" if pris_pr_person_total <= 1000 else "🟥 OVER"
+        
+        tabel_data.append({
+            "Rating": "⭐" * int(h["Rating"]),
+            "Navn": h["Navn"],
+            "By": h["Lokation"],
+            "Pris/Nat Værelse": f"{h['Pris pr. nat']} kr.",
+            "Pris/Pers Total": f"{pris_pr_person_total} kr.",
+            "Total Gruppe (8 pers)": f"{total_gruppe_pris} kr.",
+            "Budget": budget_status,
+            "Fundet af": h["Navn_Bruger"]
+        })
+    
+    # Vis tabellen i Streamlit
+    df_visning = pd.DataFrame(tabel_data)
+    st.dataframe(df_visning, use_container_width=True, hide_index=True)
+
+    # 2. DETALJERET LISTE MED FOLD UD/IND (EXPANDERS)
+    st.write("### 🔍 Klik på et hotel for detaljer og redigering")
+    
+    for h in filtreret_liste:
+        pris_pr_person_total = int((h["Pris pr. nat"] / 2) * naetter)
+        total_gruppe_pris = int(h["Pris pr. nat"] * 4 * naetter)
+        stjerner = "⭐" * int(h["Rating"])
+        budget_ikon = "🟩" if pris_pr_person_total <= 1000 else "🟥"
+        
+        # Opret Google Maps søgelink automatisk baseret på navn og lokation
+        soge_tekst = f"{h['Navn']} {h['Lokation']} France"
+        maps_link = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(soge_tekst)}"
+        
+        # Sætter hotellet ind i en lukket boks (st.expander) som standard
+        with st.expander(f"{stjerner} {h['Navn']} — {budget_ikon} {pris_pr_person_total} kr./pers."):
+            st.caption(f"Tilføjet af: **{h['Navn_Bruger']}** | Lokation: **{h['Lokation']}**")
+            
+            # Pris-detaljer inde i boksen
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.write(f"🛏️ **Pris pr. nat (1 værelse):** {h['Pris pr. nat']} kr.")
+                st.write(f"📊 **Pris pr. person ({naetter} nætter):** {pris_pr_person_total} kr.")
+            with col_b:
+                st.write(f"👥 **Totalpris for gruppen (4 værelser):** {total_gruppe_pris} kr.")
+                if pris_pr_person_total <= 1000:
+                    st.success("Inden for budget!")
+                else:
+                    st.error(f"Over budget med {pris_pr_person_total - 1000} kr.")
+            
+            if h["Kommentar"]:
+                st.info(f"💬 **Kommentar:** {h['Kommentar']}")
+                
+            # Links i bunden af hotellet (Booking/Airbnb + Google Maps)
+            link_col1, link_col2 = st.columns(2)
+            with link_col1:
+                if h["Link"] != "Intet link":
+                    st.markdown(f"[🔗 Åbn hos Booking/Airbnb]({h['Link']})")
+            with link_col2:
+                st.markdown(f"[📍 Vis på Google Maps]({maps_link})")
+            
+            st.write("") # Mellemrum
+            
+            # Rediger og Slet knapper indeni den foldede boks
+            c1, c2 = st.columns([1, 4])
+            with c1:
+                if st.button("📝 Rediger", key=f"edit_btn_{h['id']}"):
+                    st.session_state.edit_id = h["id"]
+                    st.rerun()
+            with c2:
+                if st.button("🗑️ Slet", key=f"del_btn_{h['id']}"):
+                    st.session_state.hoteller =
