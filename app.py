@@ -24,6 +24,17 @@ if not st.session_state.logget_ind:
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
 
+
+df = hent_data(CSV_URL)
+
+# FEJLFINDING: Vis mig præcis hvad den ser
+st.write("### Debug Info")
+st.write("Antal kolonner fundet:", len(df.columns))
+st.write("Kolonnenavne i CSV:", df.columns.tolist())
+
+# Forsøg at tvinge data frem
+st.dataframe(df, use_container_width=True)
+
 # TABEL SEKTION
 st.subheader("📊 Oversigt over hoteller")
 col_t1, col_t2 = st.columns([1, 4])
