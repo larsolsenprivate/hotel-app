@@ -24,8 +24,28 @@ if not st.session_state.logget_ind:
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
 
-# Formular Sektion
+# TABEL SEKTION
+st.subheader("📊 Oversigt over hoteller")
+col_t1, col_t2 = st.columns([1, 4])
+with col_t1:
+    if st.button("🔄 Opdatér tabel"): st.cache_data.clear(); st.rerun()
+with col_t2:
+    st.link_button("✏️ Ret i Google Sheet", SHEET_EDIT_URL)
+
+@st.cache_data(ttl=60)
+def hent_data(url): return pd.read_csv(url)
+
+try:
+    df = hent_data(CSV_URL)
+    st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
+except Exception as e: st.error(f"Kunne ikke hente tabel: {e}")
+
+st.write("---")
+
+# FORMULAR SEKTION
+st.subheader("➕ Tilføj nyt hotel")
 booking_link = st.text_input("Indsæt link fra Booking.com:")
+
 navn_val, by_val, checkin_val, checkout_val, voksne_val = "", "", None, None, 8
 
 if booking_link and "booking.com" in booking_link:
@@ -37,19 +57,18 @@ if booking_link and "booking.com" in booking_link:
             by_val = by_navn
             break
     
-    # Udtræk datoer og personer
     cin_m = re.search(r'checkin=([\d-]+)', booking_link)
     cout_m = re.search(r'checkout=([\d-]+)', booking_link)
     voks_m = re.search(r'group_adults=(\d+)', booking_link)
     if cin_m: checkin_val = pd.to_datetime(cin_m.group(1))
     if cout_m: checkout_val = pd.to_datetime(cout_m.group(1))
     if voks_m: voksne_val = int(voks_m.group(1))
-    st.success(f"🤖 Fundet: {navn_val} i {by_val}")
+    st.success(f"🤖 Data fundet: {navn_val} i {by_val}")
 
 with st.form("hotel_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
     with col1:
-        hvem = st.selectbox("Hvem?", ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"])
+        hvem = st.selectbox("Hvem finder det?", ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"])
         navn = st.text_input("Hotel:", value=navn_val)
         by = st.text_input("By:", value=by_val)
         adults = st.number_input("Antal voksne:", value=voksne_val)
@@ -63,24 +82,14 @@ with st.form("hotel_form", clear_on_submit=True):
     kommentar = st.text_area("Kommentar:")
     
     if st.form_submit_button("Gem hotel"):
-        # Beregn døgn
         doegn = (d_ud - d_ind).days
         data = {
-            "Område": omraade,
-            "Hotel": navn,
-            "By": by,
-            "Totalpris": total,
-            "Rating": rating,
-            "Bruger": hvem,
-            "Kommentar": kommentar,
-            "group_adults": adults,
-            "Checkin": str(d_ind),
-            "Checkout": str(d_ud),
-            "Døgn": doegn,
-            "Link": booking_link
+            "Område": omraade, "Hotel": navn, "By": by, "Totalpris": total,
+            "Rating": rating, "Bruger": hvem, "Kommentar": kommentar,
+            "group_adults": adults, "Checkin": str(d_ind), "Checkout": str(d_ud),
+            "Døgn": doegn, "Link": booking_link
         }
         try:
             requests.post(WEB_APP_URL, json=data)
-            st.success("🎉 Hotel gemt!")
-        except Exception as e:
-            st.error(f"Fejl: {e}")
+            st.success("🎉 Hotel gemt! Tryk på 'Opdatér tabel'.")
+        except Exception as e: st.error(f"Fejl: {e}")
