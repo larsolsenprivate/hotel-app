@@ -34,7 +34,9 @@ with col_t2:
 
 @st.cache_data(ttl=0) 
 def hent_data(url): 
-    return pd.read_csv(f"{url}&nocache={time.time()}")
+    # Vi henter rå data og tvinger en opdatering med en unik tidsstempel-ID
+    url_final = f"{url}&t={time.time()}"
+    return pd.read_csv(url_final)
 
 try:
     df = hent_data(CSV_URL)
