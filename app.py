@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import re
 
-# 1. SIDE OPSÆTNING
+# Side opsætning
 st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", layout="wide")
 
 # Konfiguration
@@ -32,7 +32,6 @@ st.title("🇫🇷 Fælles Hoteljagt 2026")
 
 # Tabel Sektion
 st.subheader("📊 Oversigt over hoteller")
-
 col_tabel_1, col_tabel_2 = st.columns([1, 4])
 with col_tabel_1:
     if st.button("🔄 Opdatér data"):
@@ -47,26 +46,37 @@ def hent_data(url):
 
 try:
     df = hent_data(CSV_URL)
-    # Her tvinger vi koden til at læse 'Totalpris' som tal
     df['Totalpris'] = pd.to_numeric(df['Totalpris'], errors='coerce')
     df = df.dropna(subset=['Navn'])
     st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
-except Exception as e:
-    st.error(f"Kunne ikke finde data. Sørg for at kolonnerne 'Navn' og 'Totalpris' findes i arket. Fejl: {e}")
+except Exception:
+    st.info("Ingen hoteller fundet endnu. Tilføj det første hotel nedenfor.")
 
 st.write("---")
 
 # Formular Sektion
 st.subheader("➕ Tilføj nyt hotel")
 booking_link = st.text_input("Indsæt link fra Booking.com:")
+
 navn_val = ""
 by_val = ""
 
 if booking_link and "booking.com" in booking_link:
-    match = re.search(r'/hotel/[a-z]{2}/([^.]+)', booking_link)
+    # Find navn
+    match = re.search(r'/hotel/fr/([^.]+)', booking_link)
     if match:
         navn_val = match.group(1).replace("-", " ").title()
-    st.success(f"🤖 Fandt: {navn_val}")
+    
+    # Smart detektor: Tjekker hele linket for bynavne
+    link_lower = booking_link.lower()
+    if "ribeauville" in link_lower:
+        by_val = "Ribeauvillé"
+    elif "chamonix" in link_lower:
+        by_val = "Chamonix"
+    elif "annecy" in link_lower:
+        by_val = "Annecy"
+    
+    st.success(f"🤖 Fandt: {navn_val} i {by_val}")
 
 with st.form("hotel_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
@@ -94,8 +104,7 @@ with st.form("hotel_form", clear_on_submit=True):
             "link": booking_link
         }
         try:
-            response = requests.post(WEB_APP_URL, json=data)
-            if response.status_code == 200:
-                st.success("🎉 Hotel gemt! Tryk på 'Opdatér data'.")
+            requests.post(WEB_APP_URL, json=data)
+            st.success("🎉 Hotel gemt! Tryk på 'Opdatér data'.")
         except Exception as e:
             st.error(f"Fejl ved gem: {e}")
