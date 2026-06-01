@@ -8,7 +8,7 @@ import time
 # 1. KONFIGURATION
 st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", layout="wide")
 
-WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzXV4kL7VWJXV-m5EhgqOOty3nn8OBx9cm8u1K1IsE1ZWGjeJiPBcx3o58NWm5Z0ne8/exec"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5CxxGc4SZKNX0ROkVlbO8Ak5DLuzaAlnXbCeeQRl8axhoirFK4t0-p3tQLf3qpR51/exec"
 SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit"
 CSV_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/gviz/tq?tqx=out:csv"
 KODEORD = "Frankrig2026"
