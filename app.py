@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import re
 
-# Side opsætning
+# 1. SIDE OPSÆTNING
 st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", layout="wide")
 
 # Konfiguration
@@ -46,11 +46,12 @@ def hent_data(url):
 
 try:
     df = hent_data(CSV_URL)
+    # Tvinger 'Totalpris' til at være tal, så tabellen ikke fejler
     df['Totalpris'] = pd.to_numeric(df['Totalpris'], errors='coerce')
     df = df.dropna(subset=['Navn'])
     st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
-except Exception:
-    st.info("Ingen hoteller fundet endnu. Tilføj det første hotel nedenfor.")
+except Exception as e:
+    st.error(f"Kunne ikke vise tabel. Sørg for at kolonnen 'Totalpris' findes i arket. Fejl: {e}")
 
 st.write("---")
 
@@ -67,7 +68,7 @@ if booking_link and "booking.com" in booking_link:
     if match:
         navn_val = match.group(1).replace("-", " ").title()
     
-    # Smart detektor: Tjekker hele linket for bynavne
+    # Automatisk by-detektor
     link_lower = booking_link.lower()
     if "ribeauville" in link_lower:
         by_val = "Ribeauvillé"
@@ -105,6 +106,6 @@ with st.form("hotel_form", clear_on_submit=True):
         }
         try:
             requests.post(WEB_APP_URL, json=data)
-            st.success("🎉 Hotel gemt! Tryk på 'Opdatér data'.")
+            st.success("🎉 Hotel gemt! Tryk på 'Opdatér data' for at se det.")
         except Exception as e:
             st.error(f"Fejl ved gem: {e}")
