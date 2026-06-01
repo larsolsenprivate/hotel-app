@@ -24,7 +24,7 @@ if not st.session_state.logget_ind:
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
 
-# TABEL & DEBUG SEKTION
+# TABEL SEKTION
 st.subheader("📊 Oversigt over hoteller")
 col_t1, col_t2 = st.columns([1, 4])
 with col_t1:
@@ -34,22 +34,11 @@ with col_t2:
 
 @st.cache_data(ttl=0) 
 def hent_data(url): 
-    # Tilføjer nocache for at tvinge frisk data
     return pd.read_csv(f"{url}&nocache={time.time()}")
 
 try:
     df = hent_data(CSV_URL)
-    
-    # DEBUG SEKTION
-    with st.expander("🛠️ Debug: Se hvad appen læser (klik for at åbne)"):
-        st.write("Kolonnenavne fundet:", df.columns.tolist())
-        st.write("Data forhåndsvisning:")
-        st.dataframe(df.head())
-    
-    # RENS KOLONNER: Fjerner whitespace
     df.columns = df.columns.str.strip()
-    
-    # VIS TABEL
     st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
 except Exception as e: 
     st.error(f"Fejl ved indlæsning: {e}")
@@ -74,7 +63,7 @@ if booking_link and "booking.com" in booking_link:
     if cin_m: checkin_val = pd.to_datetime(cin_m.group(1))
     if cout_m: checkout_val = pd.to_datetime(cout_m.group(1))
     if voks_m: voksne_val = int(voks_m.group(1))
-    st.success(f"🤖 Fundet: {navn_val} i {by_val}")
+    st.success("🤖 Data fundet!")
 
 with st.form("hotel_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
@@ -102,4 +91,6 @@ with st.form("hotel_form", clear_on_submit=True):
         }
         try:
             requests.post(WEB_APP_URL, json=data)
-            st.success("🎉 Hotel gemt! Tryk på
+            st.success("🎉 Hotel gemt! Tryk på 'Opdatér tabel'.")
+        except Exception as e: 
+            st.error(f"Fejl: {e}")
