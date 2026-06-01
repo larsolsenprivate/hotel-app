@@ -38,7 +38,7 @@ with col_tabel_1:
         st.cache_data.clear()
         st.rerun()
 with col_tabel_2:
-    st.link_button("✏️ Åbn Google Sheet for at rette/slette", SHEET_EDIT_URL)
+    st.link_button("✏️ Åbn Google Sheet", SHEET_EDIT_URL)
 
 @st.cache_data(ttl=600)
 def hent_data(url):
@@ -46,12 +46,11 @@ def hent_data(url):
 
 try:
     df = hent_data(CSV_URL)
-    # Tvinger 'Totalpris' til at være tal, så tabellen ikke fejler
     df['Totalpris'] = pd.to_numeric(df['Totalpris'], errors='coerce')
-    df = df.dropna(subset=['Navn'])
+    df = df.dropna(subset=['Hotel'])
     st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
 except Exception as e:
-    st.error(f"Kunne ikke vise tabel. Sørg for at kolonnen 'Totalpris' findes i arket. Fejl: {e}")
+    st.error(f"Fejl ved indlæsning: {e}")
 
 st.write("---")
 
@@ -59,32 +58,21 @@ st.write("---")
 st.subheader("➕ Tilføj nyt hotel")
 booking_link = st.text_input("Indsæt link fra Booking.com:")
 
-navn_val = ""
-by_val = ""
-
+navn_val, by_val = "", ""
 if booking_link and "booking.com" in booking_link:
-    # Find navn
     match = re.search(r'/hotel/fr/([^.]+)', booking_link)
-    if match:
-        navn_val = match.group(1).replace("-", " ").title()
-    
-    # Automatisk by-detektor
+    if match: navn_val = match.group(1).replace("-", " ").title()
     link_lower = booking_link.lower()
-    if "ribeauville" in link_lower:
-        by_val = "Ribeauvillé"
-    elif "chamonix" in link_lower:
-        by_val = "Chamonix"
-    elif "annecy" in link_lower:
-        by_val = "Annecy"
-    
+    if "ribeauville" in link_lower: by_val = "Ribeauvillé"
+    elif "chamonix" in link_lower: by_val = "Chamonix"
     st.success(f"🤖 Fandt: {navn_val} i {by_val}")
 
 with st.form("hotel_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
     with col1:
         hvem = st.selectbox("Hvem finder det?", ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"])
-        navn = st.text_input("Hotel Navn:", value=navn_val)
-        lokation = st.text_input("By:", value=by_val)
+        navn = st.text_input("Hotel:", value=navn_val)
+        by = st.text_input("By:", value=by_val)
     with col2:
         omraade = st.radio("Område:", ["Alsace", "Alperne"])
         total = st.number_input("Totalpris:", value=12000)
@@ -95,17 +83,17 @@ with st.form("hotel_form", clear_on_submit=True):
     if st.form_submit_button("Gem hotel"):
         data = {
             "id": "ny",
-            "omraade": omraade,
-            "navn": navn,
-            "lokation": lokation,
+            "Område": omraade,
+            "Hotel": navn,
+            "By": by,
             "Totalpris": total,
-            "rating": rating,
-            "bruger": hvem,
-            "kommentar": kommentar,
-            "link": booking_link
+            "Rating": rating,
+            "Bruger": hvem,
+            "Kommentar": kommentar,
+            "Link": booking_link
         }
         try:
             requests.post(WEB_APP_URL, json=data)
-            st.success("🎉 Hotel gemt! Tryk på 'Opdatér data' for at se det.")
+            st.success("🎉 Hotel gemt! Tryk på 'Opdatér data'.")
         except Exception as e:
             st.error(f"Fejl ved gem: {e}")
