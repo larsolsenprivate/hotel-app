@@ -97,8 +97,12 @@ with st.form("hotel_form", clear_on_submit=True):
             "link": booking_link
         }
         try:
-            response = requests.post(WEB_APP_URL, json=data)
-            if response.status_code == 200:
-                st.success("🎉 Hotel gemt! Tryk på 'Opdatér data' for at se det.")
+            df = hent_data(CSV_URL)
+            st.write(f"Antal rækker fundet: {len(df)}") # Se om den finder rækker
+            st.write(df.columns) # Se hvilke kolonner den kan se
+            
+            df['Pris'] = pd.to_numeric(df['Pris'], errors='coerce')
+            df = df.dropna(subset=['Navn'])
+            st.dataframe(df, use_container_width=True)
         except Exception as e:
-            st.error(f"Fejl ved gem: {e}")
+            st.error(f"Fejl: {e}")
