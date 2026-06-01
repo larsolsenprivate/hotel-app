@@ -78,11 +78,11 @@ st.write("---")
 st.subheader("📊 Oversigt over hoteller")
 st.link_button("✏️ Åbn Google Sheet for at rette/slette", SHEET_EDIT_URL)
 
+# Erstat den eksisterende 'try-except' blok med denne for at fejlsøge
 try:
     csv_url = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/gviz/tq?tqx=out:csv"
     df = pd.read_csv(csv_url)
-    df['Pris'] = pd.to_numeric(df['Pris'], errors='coerce')
-    df = df.dropna(subset=['Navn'])
-    st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
-except:
-    st.info("Ingen hoteller fundet endnu eller arket er tomt.")
+    st.write("Data modtaget fra arket:") # Debugging tekst
+    st.dataframe(df)
+except Exception as e:
+    st.error(f"Kunne ikke hente tabel: {e}")
