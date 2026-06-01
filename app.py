@@ -3,11 +3,11 @@ import pandas as pd
 import requests
 import re
 from datetime import datetime
+import time
 
-# 1. SIDE OPSÆTNING
+# 1. KONFIGURATION
 st.set_page_config(page_title="Hoteljagt Frankrig 2026", page_icon="🇫🇷", layout="wide")
 
-# Konfiguration
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzXV4kL7VWJXV-m5EhgqOOty3nn8OBx9cm8u1K1IsE1ZWGjeJiPBcx3o58NWm5Z0ne8/exec"
 SHEET_EDIT_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/edit"
 CSV_URL = "https://docs.google.com/spreadsheets/d/1iiA6QHwivaP202J4mdNjV7uXhGjGqUNHSP5E0ahhb00/gviz/tq?tqx=out:csv"
@@ -24,36 +24,41 @@ if not st.session_state.logget_ind:
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
 
-# TABEL SEKTION
+# TABEL & DEBUG SEKTION
 st.subheader("📊 Oversigt over hoteller")
 col_t1, col_t2 = st.columns([1, 4])
 with col_t1:
     if st.button("🔄 Opdatér tabel"): st.cache_data.clear(); st.rerun()
 with col_t2:
     st.link_button("✏️ Ret i Google Sheet", SHEET_EDIT_URL)
-df = hent_data(CSV_URL)
 
-# FEJLFINDING: Vis mig præcis hvad den ser
-st.write("### Debug Info")
-st.write("Antal kolonner fundet:", len(df.columns))
-st.write("Kolonnenavne i CSV:", df.columns.tolist())
-
-# Forsøg at tvinge data frem
-st.dataframe(df, use_container_width=True)
-@st.cache_data(ttl=60)
-def hent_data(url): return pd.read_csv(url)
+@st.cache_data(ttl=0) 
+def hent_data(url): 
+    # Tilføjer nocache for at tvinge frisk data
+    return pd.read_csv(f"{url}&nocache={time.time()}")
 
 try:
     df = hent_data(CSV_URL)
+    
+    # DEBUG SEKTION
+    with st.expander("🛠️ Debug: Se hvad appen læser (klik for at åbne)"):
+        st.write("Kolonnenavne fundet:", df.columns.tolist())
+        st.write("Data forhåndsvisning:")
+        st.dataframe(df.head())
+    
+    # RENS KOLONNER: Fjerner whitespace
+    df.columns = df.columns.str.strip()
+    
+    # VIS TABEL
     st.dataframe(df.sort_values(by="Rating", ascending=False), use_container_width=True)
-except Exception as e: st.error(f"Kunne ikke hente tabel: {e}")
+except Exception as e: 
+    st.error(f"Fejl ved indlæsning: {e}")
 
 st.write("---")
 
 # FORMULAR SEKTION
 st.subheader("➕ Tilføj nyt hotel")
 booking_link = st.text_input("Indsæt link fra Booking.com:")
-
 navn_val, by_val, checkin_val, checkout_val, voksne_val = "", "", None, None, 8
 
 if booking_link and "booking.com" in booking_link:
@@ -61,9 +66,7 @@ if booking_link and "booking.com" in booking_link:
     if match: navn_val = match.group(1).replace("-", " ").title()
     link_lower = booking_link.lower()
     for by_navn in ["Ribeauvillé", "Orbey", "Colmar", "Chamonix", "Annecy", "Strasbourg", "Mulhouse"]:
-        if by_navn.lower() in link_lower: 
-            by_val = by_navn
-            break
+        if by_navn.lower() in link_lower: by_val = by_navn; break
     
     cin_m = re.search(r'checkin=([\d-]+)', booking_link)
     cout_m = re.search(r'checkout=([\d-]+)', booking_link)
@@ -71,12 +74,12 @@ if booking_link and "booking.com" in booking_link:
     if cin_m: checkin_val = pd.to_datetime(cin_m.group(1))
     if cout_m: checkout_val = pd.to_datetime(cout_m.group(1))
     if voks_m: voksne_val = int(voks_m.group(1))
-    st.success(f"🤖 Data fundet: {navn_val} i {by_val}")
+    st.success(f"🤖 Fundet: {navn_val} i {by_val}")
 
 with st.form("hotel_form", clear_on_submit=True):
     col1, col2 = st.columns(2)
     with col1:
-        hvem = st.selectbox("Hvem finder det?", ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"])
+        hvem = st.selectbox("Hvem?", ["Lars", "Lotte", "Maja", "Mikkel", "Caroline", "Jørgen", "Charlotte", "Mads"])
         navn = st.text_input("Hotel:", value=navn_val)
         by = st.text_input("By:", value=by_val)
         adults = st.number_input("Antal voksne:", value=voksne_val)
@@ -99,5 +102,4 @@ with st.form("hotel_form", clear_on_submit=True):
         }
         try:
             requests.post(WEB_APP_URL, json=data)
-            st.success("🎉 Hotel gemt! Tryk på 'Opdatér tabel'.")
-        except Exception as e: st.error(f"Fejl: {e}")
+            st.success("🎉 Hotel gemt! Tryk på
