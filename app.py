@@ -24,7 +24,13 @@ if not st.session_state.logget_ind:
 
 st.title("🇫🇷 Fælles Hoteljagt 2026")
 
-
+# TABEL SEKTION
+st.subheader("📊 Oversigt over hoteller")
+col_t1, col_t2 = st.columns([1, 4])
+with col_t1:
+    if st.button("🔄 Opdatér tabel"): st.cache_data.clear(); st.rerun()
+with col_t2:
+    st.link_button("✏️ Ret i Google Sheet", SHEET_EDIT_URL)
 df = hent_data(CSV_URL)
 
 # FEJLFINDING: Vis mig præcis hvad den ser
@@ -34,15 +40,6 @@ st.write("Kolonnenavne i CSV:", df.columns.tolist())
 
 # Forsøg at tvinge data frem
 st.dataframe(df, use_container_width=True)
-
-# TABEL SEKTION
-st.subheader("📊 Oversigt over hoteller")
-col_t1, col_t2 = st.columns([1, 4])
-with col_t1:
-    if st.button("🔄 Opdatér tabel"): st.cache_data.clear(); st.rerun()
-with col_t2:
-    st.link_button("✏️ Ret i Google Sheet", SHEET_EDIT_URL)
-
 @st.cache_data(ttl=60)
 def hent_data(url): return pd.read_csv(url)
 
